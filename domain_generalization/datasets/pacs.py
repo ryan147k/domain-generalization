@@ -70,7 +70,7 @@ def get_pacs(root,
              split='train',
              num_workers=8,
              aug=True,
-             img_size=224):
+             img_size=225):
     logging.info(f'get_pacs - split:{split}, source_domains:{source_domains}, target_domain:{target_domain}, aug: {aug}')
 
     if split == 'val' or split == 'test':

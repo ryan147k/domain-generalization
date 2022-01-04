@@ -10,9 +10,27 @@ from torchvision.transforms.functional import crop
 import numpy as np
 
 
+__PERMUTATIONS__ = []
+
+
+def _get_permutations(grid_size, jig_classes):
+    permutations = []
+
+    n_grids = grid_size ** 2
+    unshuffled_p = list(range(n_grids))
+    permutations.append(unshuffled_p)
+
+    for _ in range(jig_classes - 1):
+        p = unshuffled_p.copy()
+        random.shuffle(p)
+        permutations.append(p)
+
+    return permutations
+
+
 class JigsawDataset(Dataset):
     """dataset for jigsaw"""
-    def __init__(self, dataset, grid_size, jig_classes):
+    def __init__(self, dataset, grid_size, permutations):
         """
         :param dataset: torch image dataset
         :param grid_size: number of pieces on one side of the puzzle
@@ -21,8 +39,7 @@ class JigsawDataset(Dataset):
         self.dataset = dataset
 
         self.grid_size = grid_size
-        self.jig_classes = jig_classes
-        self.permutations = self._generate_permutations()
+        self.permutations = permutations
 
     def __getitem__(self, index):
         img, label = self.dataset.__getitem__(index)
@@ -81,9 +98,15 @@ def get_jigsaw(dataset,
                num_workers=8):
     logging.info(f'get_jigsaw - split:{split}, grid_size:{grid_size}, jig_classes:{jig_classes}')
 
+    global __PERMUTATIONS__
+    if len(__PERMUTATIONS__) == 0:
+        __PERMUTATIONS__ = _get_permutations(grid_size, jig_classes)
+
+    permutations = __PERMUTATIONS__
+
     jigsaw_dataset = JigsawDataset(dataset,
                                    grid_size,
-                                   jig_classes)
+                                   permutations)
 
     dataloader = DataLoader(
         dataset=jigsaw_dataset,
@@ -95,19 +118,3 @@ def get_jigsaw(dataset,
     )
 
     return dataloader
-
-
-if __name__ == '__main__':
-    from pacs import get_pacs
-
-    loader = get_pacs(
-        '/data/hurui/project/dataset/PACS',
-        32,
-        ['P', 'A', 'C'],
-        'S',
-        'train',
-        img_size=225
-    )
-
-    jigsaw = get_jigsaw(loader.dataset, 'train', 3, 20, 32)
-    pass

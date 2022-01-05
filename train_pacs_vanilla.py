@@ -111,7 +111,7 @@ def validate(val_loader, model):
 def main():
     opt = parse_option()
 
-    exp_name = f"{opt.exp_name}-sd{opt.sd}-td'{opt.td}'-model_{opt.model}-bs{opt.bs}-seed{opt.seed}"
+    exp_name = f"{opt.exp_name}-sd_{opt.sd}-td'{opt.td}'-model_{opt.model}-bs{opt.bs}-seed{opt.seed}"
     opt.exp_name = exp_name
 
     output_dir = f'exp_results/{exp_name}'

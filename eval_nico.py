@@ -18,7 +18,6 @@ def parse_option():
     parser.add_argument('--exp_name', type=str, default=os.path.basename(__file__).split('.')[0])
     parser.add_argument('--gpu', type=int, default=7)
 
-    parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--bs', type=int, default=64, help='batch size')
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--aug', type=bool, default=True, help='data augmentation')
@@ -58,8 +57,6 @@ def main():
 
     test_loader = get_nico(
         root,
-        class_='dog',
-        label=4,
         batch_size=opt.bs,
         split='test',
         aug=False
@@ -78,7 +75,7 @@ def main():
     model = model.cuda()
 
     acc = validate(test_loader, model)
-    print(acc)
+    print(acc.item())
 
 
 if __name__ == '__main__':

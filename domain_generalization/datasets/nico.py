@@ -16,7 +16,10 @@ class NICODataset(Dataset):
         self.transformer = transformer
 
     def __getitem__(self, index):
-        img, _ = self.data[index]
+        try:
+            img, _ = self.data[index]
+        except IOError:
+            img, _ = self.data[index + 1]
         return self.transformer(img), int(self.label)
 
     def __len__(self):
@@ -24,8 +27,6 @@ class NICODataset(Dataset):
 
 
 def get_nico(root,
-             class_,
-             label,
              batch_size,
              split='test',
              num_workers=8,
@@ -63,12 +64,24 @@ def get_nico(root,
     else:
         raise AttributeError("split must be one of [train, val, test]")
 
-    dataset = NICODataset(
-        root=root,
-        class_=class_,
-        label=label,
-        transformer=transform,
-    )
+
+    pacs_label = {
+        'dog': 0,
+        'elephant': 1,
+        'horse': 4
+    }
+
+    datasets = []
+    for k, v in pacs_label.items():
+        dataset = NICODataset(
+            root=root,
+            class_=k,
+            label=v,
+            transformer=transform,
+        )
+        datasets.append(dataset)
+
+    dataset = ConcatDataset(datasets)
 
     dataloader = DataLoader(
         dataset=dataset,
@@ -79,4 +92,3 @@ def get_nico(root,
         drop_last=False
     )
     return dataloader
-

@@ -12,7 +12,7 @@ import torch.nn as nn
 from domain_generalization.datasets.office_home import get_office_home
 from domain_generalization.utils.logging import set_logging
 from domain_generalization.losses.rsc_loss import RSCLoss
-from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict
+from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict, pretty_list
 from domain_generalization.utils.trainer import get_model, save_model, load_model, get_optimizer
 
 
@@ -41,6 +41,7 @@ def parse_option():
     parser.add_argument('--drop_b', type=float, default=0.33, help='ratio of sample drop')
 
     opt = parser.parse_args()
+    opt.sd = pretty_list(opt.sd)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu)
 
     return opt
@@ -142,7 +143,7 @@ def validate(val_loader, model):
 def main():
     opt = parse_option()
 
-    exp_name = f"{opt.exp_name}-sd{opt.sd}-td_{opt.td}-dropf{opt.drop_f}-dropb{opt.drop_b}-model_{opt.model}-seed{opt.seed}"
+    exp_name = f"{opt.exp_name}-sd_{opt.sd}-td_{opt.td}-dropf{opt.drop_f}-dropb{opt.drop_b}-model_{opt.model}-seed{opt.seed}"
     opt.exp_name = exp_name
 
     output_dir = f'exp_results/{exp_name}'
@@ -152,9 +153,6 @@ def main():
     set_logging(exp_name, 'INFO', str(save_path))
     set_seed(opt.seed)
     logging.info(f'Set seed: {opt.seed}')
-
-    # np.set_printoptions(precision=3)
-    # torch.set_printoptions(precision=3)
 
     root = '../dataset/OfficeHome'
 

@@ -66,6 +66,17 @@ class pretty_dict(dict):
         return str({k: round(v, 3) if isinstance(v,float) else v for k, v in self.items()})
 
 
+class pretty_list(list):
+    def __str__(self):
+        s = ''
+        for i in range(len(self)):
+            if i == 0:
+                s = self[0]
+            else:
+                s = f'{s}_{self[i]}'
+        return s
+
+
 def adjust_learning_rate(args, optimizer, epoch):
     lr = args.learning_rate
     if args.cosine:

@@ -13,7 +13,7 @@ from domain_generalization.datasets.pacs import get_pacs
 from domain_generalization.datasets.jigsaw_dataset import get_jigsaw
 from domain_generalization.losses.jigen_loss import JiGenLoss
 from domain_generalization.utils.logging import set_logging
-from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict
+from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict, pretty_list
 from domain_generalization.utils.trainer import get_model, save_model, load_model, get_optimizer
 
 
@@ -49,6 +49,7 @@ def parse_option():
     parser.add_argument('--weight', type=float, default=0.1, help='weight of jigsaw loss')
 
     opt = parser.parse_args()
+    opt.sd = pretty_list(opt.sd)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu)
 
     return opt

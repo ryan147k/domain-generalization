@@ -12,7 +12,7 @@ import torch.nn as nn
 from domain_generalization.datasets.vlcs import get_vlcs
 from domain_generalization.utils.logging import set_logging
 from domain_generalization.losses.rsc_loss import RSCLoss
-from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict
+from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict, pretty_list
 from domain_generalization.utils.trainer import get_model, save_model, load_model, get_optimizer
 
 
@@ -41,6 +41,7 @@ def parse_option():
     parser.add_argument('--drop_b', type=float, default=0.33, help='ratio of sample drop')
 
     opt = parser.parse_args()
+    opt.sd = pretty_list(opt.sd)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu)
 
     return opt
@@ -152,9 +153,6 @@ def main():
     set_logging(exp_name, 'INFO', str(save_path))
     set_seed(opt.seed)
     logging.info(f'Set seed: {opt.seed}')
-
-    # np.set_printoptions(precision=3)
-    # torch.set_printoptions(precision=3)
 
     root = '../dataset/VLCS'
 

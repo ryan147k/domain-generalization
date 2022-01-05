@@ -31,10 +31,11 @@ def save_model(model, optimizer, opt, epoch, save_file):
     del state
 
 
-def load_model(state_dict, model, optimizer):
+def load_model(state_dict, model, optimizer=None):
     opt = state_dict['opt']
     model.load_state_dict(state_dict['model'])
-    optimizer.load_state_dict(state_dict['optimizer'])
+    if optimizer is not None:
+        optimizer.load_state_dict(state_dict['optimizer'])
     epoch = state_dict['epoch']
 
     return opt, model, optimizer, epoch

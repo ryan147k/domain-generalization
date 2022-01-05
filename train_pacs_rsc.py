@@ -12,7 +12,7 @@ import torch.nn as nn
 from domain_generalization.datasets.pacs import get_pacs
 from domain_generalization.utils.logging import set_logging
 from domain_generalization.losses.rsc_loss import RSCLoss
-from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict
+from domain_generalization.utils.utils import AverageMeter, accuracy, set_seed, pretty_dict, pretty_list
 from domain_generalization.utils.trainer import get_model, save_model, load_model, get_optimizer
 from domain_generalization.models.resnet import resnet18
 
@@ -42,6 +42,7 @@ def parse_option():
     parser.add_argument('--drop_b', type=float, default=0.33, help='ratio of sample drop')
 
     opt = parser.parse_args()
+    opt.sd = pretty_list(opt.sd)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.gpu)
 
     return opt

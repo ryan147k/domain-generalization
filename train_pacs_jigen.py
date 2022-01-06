@@ -68,30 +68,30 @@ def set_model(opt):
 
     module.register_forward_hook(_hook)
 
-    model.jigsaw_fc = nn.Linear(
+    jigsaw_classifier = nn.Linear(
         in_features=module.in_features,
         out_features=opt.njc
     )
 
     model = model.cuda()
+    jigsaw_classifier = jigsaw_classifier.cuda()
 
     criterion = JiGenLoss(opt.weight)
 
     optimizer = get_optimizer(
         opt.optim,
-        model.parameters(),
+        [{'params': model.parameters()},
+         {'params': jigsaw_classifier.parameters()}],
         opt.lr,
     )
 
     decay_epochs = [opt.epochs * 2 // 3, opt.epochs * 4 // 5]
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
 
-    return model, criterion, optimizer, scheduler
+    return model, jigsaw_classifier, criterion, optimizer, scheduler
 
 
-def train_epoch(train_loader, train_jigsaw_loader, model, criterion, optimizer, epoch, opt):
-    jigsaw_classifier = model.jigsaw_fc
-
+def train_epoch(train_loader, train_jigsaw_loader, model, jigsaw_classifier, criterion, optimizer, epoch, opt):
     model.train()
     avg_img_loss = AverageMeter()
     avg_jigsaw_loss = AverageMeter()
@@ -132,7 +132,7 @@ def train_epoch(train_loader, train_jigsaw_loader, model, criterion, optimizer, 
     return avg_img_loss.avg, avg_jigsaw_loss.avg, avg_joint_loss.avg
 
 
-def validate(val_loader, model, jigsaw=False):
+def validate(val_loader, model, jigsaw=False, jigsaw_classifier=None):
     model.eval()
     top1 = AverageMeter()
 
@@ -145,7 +145,7 @@ def validate(val_loader, model, jigsaw=False):
 
             if jigsaw:
                 global features
-                output = model.jigsaw_fc(features)
+                output = jigsaw_classifier(features)
 
             acc1, = accuracy(output, labels, topk=(1,))
             top1.update(acc1[0], bsz)
@@ -231,7 +231,7 @@ def main():
         opt.bs
     ))
 
-    model, criterion, optimizer, scheduler = set_model(opt)
+    model, jigsaw_classifier, criterion, optimizer, scheduler = set_model(opt)
 
     if opt.resume:
         state = torch.load(save_path / 'checkpoints'/ 'last.pth')
@@ -246,7 +246,15 @@ def main():
 
     for epoch in range(1, opt.epochs + 1):
         logging.info(f'[{epoch} / {opt.epochs}] Learning rate: {scheduler.get_last_lr()[0]}')
-        i_loss, j_loss, all_loss = train_epoch(train_loader, train_jigsaw_loader, model, criterion, optimizer, epoch, opt)
+        i_loss, j_loss, all_loss = train_epoch(train_loader,
+                                               train_jigsaw_loader,
+                                               model,
+                                               jigsaw_classifier,
+                                               criterion,
+                                               optimizer,
+                                               epoch,
+                                               opt)
+
         logging.info(f'[{epoch} / {opt.epochs}] Images Loss: {i_loss} Jigsaw Loss: {j_loss} Loss: {all_loss}')
 
         scheduler.step()
@@ -257,7 +265,7 @@ def main():
         stats = pretty_dict(epoch=epoch)
 
         val_acc = validate(val_loader, model)
-        val_jigsaw_acc = validate(val_jigsaw_loader, model, jigsaw=True)
+        val_jigsaw_acc = validate(val_jigsaw_loader, model, jigsaw=True, jigsaw_classifier=jigsaw_classifier)
         test_acc = validate(test_loader, model)
         stats['valid/acc'] = val_acc.item()
         stats['test/acc'] = test_acc.item()

@@ -67,6 +67,18 @@ def main():
     # model for PACS
     model = get_model(opt.model, opt.pretrain, 7)
 
+    if True:
+        from collections.abc import Iterable
+        from torch import nn
+        module = list(model.children())[-1]
+        while isinstance(module, Iterable):
+            module = module[-1]
+
+        model.jigsaw_fc = nn.Linear(
+            in_features=module.in_features,
+            out_features=32
+        )
+
     if opt.resume:
         load_path = Path(opt.load_path) / 'checkpoints' / 'best_valid.pth'
         state = torch.load(load_path)

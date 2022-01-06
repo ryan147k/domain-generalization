@@ -5,6 +5,8 @@ from torch.utils.data import ConcatDataset, DataLoader, Dataset
 import torchvision.transforms as T
 from torchvision.datasets import ImageFolder
 
+from ._utils import Subset, get_transform
+
 
 class VLCSDataset(Dataset):
     DOMAINS = ['CALTECH', 'LABELME', 'PASCAL', 'SUN']
@@ -51,38 +53,16 @@ def get_vlcs(root,
              split='train',
              num_workers=8,
              aug=True,
-             img_size=224):
+             img_size=224,
+             limit=None):
+
     logging.info(f'get_vlcs - split:{split}, source_domains:{source_domains}, target_domain:{target_domain}, aug: {aug}')
 
-    if split == 'val' or split == 'test':
-        transform = T.Compose(
-            [
-                T.Resize((img_size, img_size)),
-                T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-            ]
-        )
-    elif split == 'train':
-        if aug:
-            transform = T.Compose([
-                T.RandomResizedCrop(size=img_size, scale=(0.8, 1.)),
-                T.RandomHorizontalFlip(p=0.5),
-                T.ColorJitter(0.4, 0.4, 0.4, 0.4),
-                T.RandomGrayscale(p=0.1),
-                T.ToTensor(),
-                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-            ])
-        else:
-            transform = T.Compose(
-                [
-                    T.Resize((img_size, img_size)),
-                    T.RandomHorizontalFlip(),
-                    T.ToTensor(),
-                    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                ]
-            )
-    else:
-        raise AttributeError("split must be one of [train, val, test]")
+    transform = get_transform(
+        split=split,
+        aug=aug,
+        img_size=img_size
+    )
 
     if split == 'test':
         dataset = VLCSDataset(
@@ -103,6 +83,9 @@ def get_vlcs(root,
             datasets.append(dataset)
 
         dataset = ConcatDataset(datasets)
+
+    if limit is not None:
+        dataset = Subset(dataset)
 
     dataloader = DataLoader(
         dataset=dataset,

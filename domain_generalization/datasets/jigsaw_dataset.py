@@ -1,6 +1,4 @@
 import logging
-from pathlib import Path
-from PIL import Image
 import random
 
 import torch
@@ -8,6 +6,8 @@ from torch.utils.data import DataLoader, Dataset
 import torchvision
 from torchvision.transforms.functional import crop
 import numpy as np
+
+from ._utils import Subset
 
 
 __PERMUTATIONS__ = []
@@ -95,7 +95,8 @@ def get_jigsaw(dataset,
                grid_size,
                jig_classes,
                batch_size,
-               num_workers=8):
+               num_workers=8,
+               limit=None):
     logging.info(f'get_jigsaw - split:{split}, grid_size:{grid_size}, jig_classes:{jig_classes}')
 
     global __PERMUTATIONS__
@@ -107,6 +108,9 @@ def get_jigsaw(dataset,
     jigsaw_dataset = JigsawDataset(dataset,
                                    grid_size,
                                    permutations)
+
+    if limit is not None:
+        jigsaw_dataset = Subset(jigsaw_dataset, limit)
 
     dataloader = DataLoader(
         dataset=jigsaw_dataset,

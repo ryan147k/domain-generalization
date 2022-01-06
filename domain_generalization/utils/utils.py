@@ -8,7 +8,7 @@ import random
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-
+from torch.utils.data import Dataset
 
 class AverageMeter(object):
     """Computes and stores the average and current value

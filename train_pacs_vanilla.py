@@ -23,7 +23,7 @@ def parse_option():
     parser.add_argument('--exp_name', type=str, default=os.path.basename(__file__).split('.')[0])
     parser.add_argument('--gpu', type=int, default=4)
 
-    parser.add_argument('--epochs', type=int, default=30)
+    parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--bs', type=int, default=32, help='batch size')
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--aug', type=bool, default=True, help='data augmentation')
